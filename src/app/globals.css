@@ -216,6 +216,63 @@ body {
     margin: 1.25rem 1rem 1.25rem 0.4rem;
   }
 
+  /* Code block styles */
+  pre {
+    @apply bg-slate-900 text-slate-50;
+    border-radius: 8px;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+      monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  pre code {
+    @apply bg-transparent text-inherit;
+    font-size: inherit;
+    padding: 0;
+  }
+
+  pre code .hljs-comment,
+  pre code .hljs-quote {
+    color: #94a3b8;
+  }
+
+  pre code .hljs-keyword,
+  pre code .hljs-selector-tag,
+  pre code .hljs-literal,
+  pre code .hljs-section,
+  pre code .hljs-link {
+    color: #f472b6;
+  }
+
+  pre code .hljs-function,
+  pre code .hljs-title,
+  pre code .hljs-name,
+  pre code .hljs-attribute {
+    color: #38bdf8;
+  }
+
+  pre code .hljs-string,
+  pre code .hljs-symbol,
+  pre code .hljs-bullet,
+  pre code .hljs-addition {
+    color: #4ade80;
+  }
+
+  pre code .hljs-number,
+  pre code .hljs-regexp,
+  pre code .hljs-literal {
+    color: #facc15;
+  }
+
+  pre code .hljs-type,
+  pre code .hljs-built_in {
+    color: #a78bfa;
+  }
+
   ul li {
     list-style-type: disc;
 

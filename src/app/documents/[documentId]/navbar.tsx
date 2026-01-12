@@ -7,6 +7,7 @@ import Link from "next/link";
 import { BsFilePdf } from "react-icons/bs";
 import {
   BoldIcon,
+  Code2Icon,
   FileIcon,
   FileJsonIcon,
   FilePenIcon,
@@ -74,6 +75,14 @@ export const Navbar = ({ data }: NavbarProps) => {
 
   const insertTable = ({ rows, cols }: { rows: number; cols: number }) => {
     editor?.chain().focus().insertTable({ rows, cols, withHeaderRow: false }).run();
+  };
+
+  const insertCodeBlock = () => {
+    editor
+      ?.chain()
+      .focus()
+      .insertContent({ type: "codeBlock", content: [{ type: "text", text: "" }] })
+      .run();
   };
 
   const onDownload = (blob: Blob, filename: string) => {
@@ -202,6 +211,11 @@ export const Navbar = ({ data }: NavbarProps) => {
                   Insert
                 </MenubarTrigger>
                 <MenubarContent>
+                  <MenubarItem onClick={insertCodeBlock}>
+                    <Code2Icon className="size-4 mr-2" />
+                    Code block
+                  </MenubarItem>
+                  <MenubarSeparator />
                   <MenubarSub>
                     <MenubarSubTrigger>Table</MenubarSubTrigger>
                     <MenubarSubContent>
@@ -216,6 +230,10 @@ export const Navbar = ({ data }: NavbarProps) => {
                       </MenubarItem>
                       <MenubarItem onClick={() => insertTable({ rows: 4, cols: 6 })}>
                         4 x 6
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem onClick={() => editor?.chain().focus().deleteTable().run()}>
+                        Delete table
                       </MenubarItem>
                     </MenubarSubContent>
                   </MenubarSub>

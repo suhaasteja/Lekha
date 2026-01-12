@@ -56,6 +56,11 @@ CLERK_SECRET_KEY=your-clerk-secret-key
 
 # Liveblocks
 LIVEBLOCKS_SECRET_KEY=your-liveblocks-secret-key
+
+# OpenAI
+OPENAI_API_KEY=your-openai-api-key
+# Optional
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 ### 3. Convex Setup
@@ -140,6 +145,10 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:3000`.
+
+### 7. Inline LLM Commands
+
+In the editor, type `/openai your prompt` on its own line and press Enter. The response will be inserted directly below your command.
 
 ## Project Structure
 

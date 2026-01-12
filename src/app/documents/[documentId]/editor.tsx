@@ -1,7 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { Extension } from "@tiptap/core";
+import { NodeSelection } from "prosemirror-state";
 import StarterKit from "@tiptap/starter-kit";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { common, createLowlight } from "lowlight";
 
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
@@ -31,6 +36,7 @@ import { useStorage } from "@liveblocks/react";
 import { useEditorStore } from "@/store/use-editor-store";
 import { FontSizeExtensions } from "@/extensions/font-size";
 import { LineHeightExtension } from "@/extensions/line-height";
+import { LlmCommandExtension } from "@/extensions/llm-command";
 import { Ruler } from "./ruler";
 import { Threads } from "./threads";
 import { LEFT_MARGIN_DEFAULT, RIGHT_MARGIN_DEFAULT } from "@/constants/margins";
@@ -39,9 +45,60 @@ interface EditorProps {
   initialContent?: string | undefined;
 }
 
+const TableDeleteShortcut = Extension.create({
+  name: "tableDeleteShortcut",
+  addKeyboardShortcuts() {
+    const maybeDeleteTable = () => {
+      const { selection } = this.editor.state;
+
+      if (selection instanceof NodeSelection && selection.node.type.name === "table") {
+        return this.editor.commands.deleteTable();
+      }
+
+      if (!selection.empty) {
+        return false;
+      }
+
+      const { $from } = selection;
+      if ($from.parent.type.name !== "paragraph" || $from.parentOffset !== 0) {
+        return false;
+      }
+
+      const depth = $from.depth;
+      if (depth < 3) {
+        return false;
+      }
+
+      const cell = $from.node(depth - 1);
+      const row = $from.node(depth - 2);
+      const table = $from.node(depth - 3);
+
+      if (
+        cell?.type.name !== "table_cell" ||
+        row?.type.name !== "table_row" ||
+        table?.type.name !== "table"
+      ) {
+        return false;
+      }
+
+      if ($from.index(depth - 2) !== 0 || $from.index(depth - 3) !== 0) {
+        return false;
+      }
+
+      return this.editor.commands.deleteTable();
+    };
+
+    return {
+      Backspace: maybeDeleteTable,
+      Delete: maybeDeleteTable,
+    };
+  },
+});
+
 export const Editor = ({ initialContent }: EditorProps) => {
   const leftMargin = useStorage((root) => root.leftMargin) ?? LEFT_MARGIN_DEFAULT;
   const rightMargin = useStorage((root) => root.rightMargin) ?? RIGHT_MARGIN_DEFAULT;
+  const lowlight = useMemo(() => createLowlight(common), []);
 
   const liveblocks = useLiveblocksExtension({
     initialContent,
@@ -86,8 +143,15 @@ export const Editor = ({ initialContent }: EditorProps) => {
       liveblocks,
       StarterKit.configure({
         history: false,
+        codeBlock: false,
       }),
-      Table,
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+      TableDeleteShortcut,
+      Table.configure({
+        allowTableNodeSelection: true,
+      }),
       TableCell,
       TableHeader,
       TableRow,
@@ -111,6 +175,7 @@ export const Editor = ({ initialContent }: EditorProps) => {
         autolink: true,
         defaultProtocol: "https",
       }),
+      LlmCommandExtension,
       Highlight.configure({
         multicolor: true,
       }),
