@@ -1,4 +1,4 @@
-# Google Docs Clone
+# Lekha
 
 A collaborative document editor built with Next.js, featuring real-time collaboration, authentication, and organizational support. This application provides a Google Docs-like experience with rich text editing, live cursors, comments, and document management.
 
@@ -35,7 +35,7 @@ Before setting up the project, ensure you have:
 ### 1. Clone and Install Dependencies
 
 ```bash
-git clone https://github.com/Davronov-Alimardon/google-docs.git
+git clone https://github.com/suhaasteja/Lekha.git
 cd google-docs-clone
 npm install
 ```
