@@ -13,7 +13,7 @@ type PendingState = {
   pending: Record<string, number>;
 };
 
-const DEFAULT_COMMAND = "/openai";
+const DEFAULT_COMMAND = "/lekha";
 const DEFAULT_ENDPOINT = "/api/llm/stream";
 const DEFAULT_LOADING_TEXT = "Loading...";
 
@@ -25,6 +25,36 @@ const createId = () => {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const getParentAccordionContext = (editor: Editor) => {
+  const { $from } = editor.state.selection;
+
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+    if (node.type.name !== "llmAccordion") {
+      continue;
+    }
+
+    const prompt =
+      typeof node.attrs.prompt === "string" && node.attrs.prompt.trim()
+        ? node.attrs.prompt.trim()
+        : "";
+    const text = node.textContent.trim();
+
+    if (!prompt && !text) {
+      return null;
+    }
+
+    const parts = [
+      prompt ? `Prompt: ${prompt}` : "",
+      text ? `Response:\n${text}` : "",
+    ].filter(Boolean);
+
+    return parts.join("\n\n");
+  }
+
+  return null;
 };
 
 const updateStreamingState = (editor: Editor, id: string, isStreaming: boolean) => {
@@ -514,6 +544,10 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
 
             event.preventDefault();
 
+            const parentContext = getParentAccordionContext(editor);
+            const promptWithContext = parentContext
+              ? `Context:\n${parentContext}\n\nUser request:\n${prompt}`
+              : prompt;
             const id = createId();
             const { schema } = state;
             const displayPrompt = `${command} ${prompt}`;
@@ -540,7 +574,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
 
             void streamLlmResponse(
               endpoint,
-              prompt,
+              promptWithContext,
               (delta) => {
                 streamedText += delta;
                 updatePendingAccordion(editor, id, streamedText);
@@ -551,7 +585,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
               }
             ).catch(async (error: Error) => {
               try {
-                const fallback = await fetchLlmResponse("/api/llm", prompt);
+                const fallback = await fetchLlmResponse("/api/llm", promptWithContext);
                 updateStreamingState(editor, id, false);
                 replacePendingResponse(editor, id, fallback, true, true);
               } catch (fallbackError) {

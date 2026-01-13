@@ -137,7 +137,7 @@ export const Editor = ({ initialContent }: EditorProps) => {
       attributes: {
         style: `padding-left: ${leftMargin}px; padding-right: ${rightMargin}px;`,
         class:
-          "focus:outline-none print:boder-0 border bg-white border-editor-border flex flex-col min-h-[1054px] w-[816px] pt-10 pr-14 pb-10 cursor-text",
+          "focus:outline-none print:border-0 border bg-white border-editor-border flex flex-col min-h-[1054px] w-[816px] pt-10 pr-14 pb-10 cursor-text rounded-2xl shadow-[0_14px_40px_-30px_rgba(15,23,42,0.55)] print:shadow-none print:rounded-none",
       },
     },
     extensions: [

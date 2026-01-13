@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Sora, Newsreader } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "@liveblocks/react-ui/styles.css";
@@ -9,8 +9,14 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 
-const inter = Inter({
+const sora = Sora({
   subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${sora.variable} ${newsreader.variable}`}>
         <ConvexClientProvider>
           <NuqsAdapter>
             <Toaster />

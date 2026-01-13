@@ -9,17 +9,26 @@ import { useRouter } from "next/navigation";
 
 interface DocumentRowProps {
   document: Doc<"documents">;
+  index: number;
 }
 
-export const DocumentRow = ({ document }: DocumentRowProps) => {
+export const DocumentRow = ({ document, index }: DocumentRowProps) => {
   const router = useRouter();
 
   return (
-    <TableRow className="cursor-pointer" onClick={() => router.push(`/documents/${document._id}`)}>
+    <TableRow
+      className="cursor-pointer transition hover:bg-slate-50/80 reveal-up"
+      onClick={() => router.push(`/documents/${document._id}`)}
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
       <TableCell className="w-[50px]">
-        <SiGoogledocs className="size-6 fill-blue-500" />
+        <div className="size-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+          <SiGoogledocs className="size-5 fill-current" />
+        </div>
       </TableCell>
-      <TableCell className="font-medium md:w-[45%]">{document.title}</TableCell>
+      <TableCell className="font-medium md:w-[45%] text-slate-900">
+        {document.title}
+      </TableCell>
       <TableCell className="text-muted-foreground hidden md:flex items-center gap-2">
         {document.organizationId ? (
           <Building2Icon className="size-4" />

@@ -35,21 +35,29 @@ export const TemplatesGallery = () => {
   };
 
   return (
-    <div className="bg-[#F1F3F4]">
-      <div className="max-w-screen-xl mx-auto px-16 py-6 flex flex-col gap-y-4">
-        <h3 className="font-medium">Start a new document</h3>
+    <section className="bg-transparent">
+      <div className="max-w-screen-xl mx-auto px-6 sm:px-10 lg:px-16 py-6 flex flex-col gap-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Start fresh</h3>
+            <p className="text-sm text-slate-600">
+              Pick a template or begin with a blank canvas.
+            </p>
+          </div>
+        </div>
         <Carousel>
           <CarouselContent className="-ml-4">
-            {templates.map((template) => (
+            {templates.map((template, index) => (
               <CarouselItem
                 key={template.id}
                 className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-[14.285714%] pl-4"
               >
                 <div
                   className={cn(
-                    "aspect-[3/4] flex flex-col gap-y-2.5",
+                    "aspect-[3/4] flex flex-col gap-y-2.5 reveal-up",
                     isCreating && "pointer-events-none opacity-50"
                   )}
+                  style={{ animationDelay: `${index * 70}ms` }}
                 >
                   <button
                     disabled={isCreating}
@@ -61,9 +69,9 @@ export const TemplatesGallery = () => {
                       backgroundPosition: "center",
                       backgroundRepeat: "no-repeat",
                     }}
-                    className="size-full hover:border-blue-500 rounded-sm border hover:bg-blue-50 transition flex flex-col items-center justify-center gap-y-4 bg-white"
+                    className="size-full rounded-2xl border border-black/5 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/60"
                   />
-                  <p className="text-sm font-medium truncate">{template.label}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">{template.label}</p>
                 </div>
               </CarouselItem>
             ))}
@@ -72,6 +80,6 @@ export const TemplatesGallery = () => {
           <CarouselNext />
         </Carousel>
       </div>
-    </div>
+    </section>
   );
 };

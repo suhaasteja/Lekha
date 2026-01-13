@@ -1,7 +1,7 @@
 "use client";
 
 import { Node, mergeAttributes } from "@tiptap/core";
-import type { MouseEvent } from "react";
+import { type MouseEvent } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   NodeViewContent,
@@ -19,6 +19,7 @@ const LlmAccordionView = ({ node, editor, getPos }: NodeViewProps) => {
       : "OpenAI response";
 
   const isStreaming = Boolean(node.attrs.isStreaming);
+
   const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -45,11 +46,15 @@ const LlmAccordionView = ({ node, editor, getPos }: NodeViewProps) => {
       <AccordionPrimitive.Root type="single" collapsible>
         <AccordionPrimitive.Item
           value="llm-response"
-          className="rounded-md border-0 bg-slate-50/70 shadow-sm overflow-hidden"
+          className="rounded-xl border-0 bg-white shadow-sm overflow-hidden"
         >
-          <AccordionPrimitive.Header className="flex items-center gap-1">
-            <AccordionPrimitive.Trigger className="flex min-h-[24px] flex-1 items-center justify-start gap-1 px-2 !py-0 text-xs font-medium text-left text-slate-700 hover:bg-slate-100/80">
-              {prompt}
+          <AccordionPrimitive.Header className="flex items-center gap-1" contentEditable={false}>
+            <AccordionPrimitive.Trigger
+              className="flex min-h-[24px] flex-1 items-center justify-start gap-1 px-2.5 !py-1 text-xs font-semibold text-left text-slate-700 hover:bg-slate-50"
+              contentEditable={false}
+              suppressContentEditableWarning
+            >
+              <span className="truncate">{prompt}</span>
               {isStreaming ? (
                 <svg
                   aria-hidden="true"
@@ -80,14 +85,16 @@ const LlmAccordionView = ({ node, editor, getPos }: NodeViewProps) => {
             <button
               type="button"
               aria-label="Delete response"
-              className="mr-1 inline-flex h-5 w-5 items-center justify-center self-center rounded-full text-slate-400 transition hover:bg-white/80 hover:text-slate-600"
+              className="mr-1 inline-flex h-5 w-5 items-center justify-center self-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              contentEditable={false}
+              suppressContentEditableWarning
               onClick={handleDelete}
             >
               <span aria-hidden="true">×</span>
             </button>
           </AccordionPrimitive.Header>
           <AccordionPrimitive.Content className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down rounded-b-[1%]">
-            <div className="bg-[#c7feff] p-2.5 text-sm">
+            <div className="bg-slate-50/80 p-3 text-sm">
               <NodeViewContent className="prose prose-sm max-w-none" />
             </div>
           </AccordionPrimitive.Content>

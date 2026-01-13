@@ -10,7 +10,10 @@ export const Navbar = () => {
         <Link href="/">
           <Image src={"/logo.svg"} alt="Logo" width={36} height={36} />
         </Link>
-        <h3 className="text-xl">Docs</h3>
+        <div className="flex flex-col leading-tight">
+          <span className="text-xs uppercase tracking-[0.22em] text-slate-400">Workspace</span>
+          <h3 className="text-xl font-semibold text-slate-900">Lekha</h3>
+        </div>
       </div>
       <SearchInput />
       <div className="flex gap-3 items-center pl-6">

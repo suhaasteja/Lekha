@@ -148,7 +148,7 @@ The application will be available at `http://localhost:3000`.
 
 ### 7. Inline LLM Commands
 
-In the editor, type `/openai your prompt` on its own line and press Enter. The response will be inserted directly below your command.
+In the editor, type `/lekha your prompt` on its own line and press Enter. The response will be inserted directly below your command.
 
 ## Project Structure
 

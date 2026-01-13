@@ -20,37 +20,45 @@ interface DocumentsTableProps {
 
 export const DocumentsTable = ({ documents, loadMore, status }: DocumentsTableProps) => {
   return (
-    <div className="max-w-screen-xl mx-auto px-16 py-6 flex flex-col gap-5">
+    <section className="max-w-screen-xl mx-auto px-6 sm:px-10 lg:px-16 py-6 flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Recent documents</h3>
+          <p className="text-sm text-slate-600">Pick up where you left off.</p>
+        </div>
+      </div>
       {documents === undefined ? (
         <div className="flex justify-center items-center h-24">
           <LoaderIcon className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>&nbsp;</TableHead>
-              <TableHead className="hidden md:table-cell">Shared</TableHead>
-              <TableHead className="hidden md:table-cell">Created at</TableHead>
-            </TableRow>
-          </TableHeader>
-          {documents.length === 0 ? (
-            <TableBody>
+        <div className="rounded-2xl border border-black/5 bg-white/80 shadow-sm backdrop-blur">
+          <Table>
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={4} className="h-24 text-muted-foreground text-center">
-                  No documents found
-                </TableCell>
+                <TableHead className="text-slate-500">Name</TableHead>
+                <TableHead>&nbsp;</TableHead>
+                <TableHead className="hidden md:table-cell text-slate-500">Shared</TableHead>
+                <TableHead className="hidden md:table-cell text-slate-500">Created</TableHead>
               </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {documents.map((document) => (
-                <DocumentRow key={document._id} document={document} />
-              ))}
-            </TableBody>
-          )}
-        </Table>
+            </TableHeader>
+            {documents.length === 0 ? (
+              <TableBody>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={4} className="h-24 text-muted-foreground text-center">
+                    No documents found
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            ) : (
+              <TableBody>
+                {documents.map((document, index) => (
+                  <DocumentRow key={document._id} document={document} index={index} />
+                ))}
+              </TableBody>
+            )}
+          </Table>
+        </div>
       )}
       <div className="flex items-center justify-center">
         <Button
@@ -62,6 +70,6 @@ export const DocumentsTable = ({ documents, loadMore, status }: DocumentsTablePr
           {status === "CanLoadMore" ? "Load more" : "End of results"}
         </Button>
       </div>
-    </div>
+    </section>
   );
 };
