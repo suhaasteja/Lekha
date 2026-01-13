@@ -37,6 +37,7 @@ import { useEditorStore } from "@/store/use-editor-store";
 import { FontSizeExtensions } from "@/extensions/font-size";
 import { LineHeightExtension } from "@/extensions/line-height";
 import { LlmCommandExtension } from "@/extensions/llm-command";
+import { LlmAccordionExtension } from "@/extensions/llm-accordion";
 import { Ruler } from "./ruler";
 import { Threads } from "./threads";
 import { LEFT_MARGIN_DEFAULT, RIGHT_MARGIN_DEFAULT } from "@/constants/margins";
@@ -175,6 +176,7 @@ export const Editor = ({ initialContent }: EditorProps) => {
         autolink: true,
         defaultProtocol: "https",
       }),
+      LlmAccordionExtension,
       LlmCommandExtension,
       Highlight.configure({
         multicolor: true,

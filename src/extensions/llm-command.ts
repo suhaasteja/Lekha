@@ -27,6 +27,26 @@ const createId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
+const updateStreamingState = (editor: Editor, id: string, isStreaming: boolean) => {
+  const state = editor.state;
+  const pending = pluginKey.getState(state)?.pending;
+  const pos = pending?.[id];
+  if (pos === undefined) {
+    return;
+  }
+
+  const nodeAtPos = state.doc.nodeAt(pos);
+  if (!nodeAtPos || nodeAtPos.type.name !== "llmAccordion") {
+    return;
+  }
+
+  const tr = state.tr.setNodeMarkup(pos, undefined, {
+    ...nodeAtPos.attrs,
+    isStreaming,
+  });
+  editor.view.dispatch(tr);
+};
+
 const buildNodesFromResponse = (schema: Editor["schema"], text: string) => {
   const nodes: ProseMirrorNode[] = [];
   const normalized = text.replace(/\r\n/g, "\n");
@@ -225,7 +245,12 @@ const buildNodesFromResponse = (schema: Editor["schema"], text: string) => {
   return nodes;
 };
 
-const updatePendingPlainText = (editor: Editor, id: string, text: string) => {
+const updatePendingAccordion = (
+  editor: Editor,
+  id: string,
+  text: string,
+  parseFences = true
+) => {
   const state = editor.state;
   const pending = pluginKey.getState(state)?.pending;
   const pos = pending?.[id];
@@ -234,13 +259,24 @@ const updatePendingPlainText = (editor: Editor, id: string, text: string) => {
   }
 
   const nodeAtPos = state.doc.nodeAt(pos);
-  if (!nodeAtPos || nodeAtPos.type.name !== "paragraph") {
+  if (!nodeAtPos || nodeAtPos.type.name !== "llmAccordion") {
     return;
   }
 
   const from = pos + 1;
   const to = pos + nodeAtPos.nodeSize - 1;
-  const tr = state.tr.insertText(text, from, to);
+  const nodes = parseFences
+    ? buildNodesFromResponse(editor.schema, text)
+    : [
+        editor.schema.nodes.paragraph.create(
+          null,
+          text ? editor.schema.text(text) : undefined
+        ),
+      ];
+  const content = nodes.length
+    ? Fragment.fromArray(nodes)
+    : Fragment.fromArray([editor.schema.nodes.paragraph.create()]);
+  const tr = state.tr.replaceWith(from, to, content);
   editor.view.dispatch(tr);
 };
 
@@ -258,53 +294,25 @@ const replacePendingResponse = (
     return;
   }
 
-  const paragraph = state.schema.nodes.paragraph;
-  if (!paragraph) {
-    return;
-  }
-
   const nodeAtPos = state.doc.nodeAt(pos);
-  if (nodeAtPos?.type.name === "paragraph") {
-    if (!parseFences) {
-      updatePendingPlainText(editor, id, text);
-      return;
-    }
-
-    const nodes = buildNodesFromResponse(editor.schema, text);
-    const content = nodes.length > 0 ? Fragment.fromArray(nodes) : null;
-    const tr = content
-      ? state.tr.replaceWith(pos, pos + nodeAtPos.nodeSize, content)
-      : state.tr.delete(pos, pos + nodeAtPos.nodeSize);
-
-    if (finalize) {
-      tr.setMeta(pluginKey, { remove: id });
-    }
-
-    editor.view.dispatch(tr);
+  if (!nodeAtPos || nodeAtPos.type.name !== "llmAccordion") {
     return;
   }
 
-  const resolved = state.doc.resolve(pos);
-  let depth = resolved.depth;
-
-  while (depth > 0 && resolved.node(depth).type.name !== "paragraph") {
-    depth -= 1;
-  }
-
-  if (depth === 0) {
-    return;
-  }
-
-  const from = resolved.before(depth);
-  const to = resolved.after(depth);
-  if (!parseFences) {
-    updatePendingPlainText(editor, id, text);
-    return;
-  }
-
-  const nodes = buildNodesFromResponse(editor.schema, text);
-  const content = nodes.length > 0 ? Fragment.fromArray(nodes) : null;
-  const tr = content ? state.tr.replaceWith(from, to, content) : state.tr.delete(from, to);
+  const from = pos + 1;
+  const to = pos + nodeAtPos.nodeSize - 1;
+  const nodes = parseFences
+    ? buildNodesFromResponse(editor.schema, text)
+    : [
+        editor.schema.nodes.paragraph.create(
+          null,
+          text ? editor.schema.text(text) : undefined
+        ),
+      ];
+  const content = nodes.length
+    ? Fragment.fromArray(nodes)
+    : Fragment.fromArray([editor.schema.nodes.paragraph.create()]);
+  const tr = state.tr.replaceWith(from, to, content);
 
   if (finalize) {
     tr.setMeta(pluginKey, { remove: id });
@@ -507,11 +515,23 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
             event.preventDefault();
 
             const id = createId();
-            const tr = state.tr.split(selection.from);
-            const loadingPos = tr.selection.from;
-            tr.insertText(DEFAULT_LOADING_TEXT, loadingPos);
+            const { schema } = state;
+            const displayPrompt = `${command} ${prompt}`;
+            const accordionNode = schema.nodes.llmAccordion?.create(
+              {
+                prompt: displayPrompt,
+                isStreaming: true,
+                accordionId: id,
+              },
+              buildNodesFromResponse(schema, DEFAULT_LOADING_TEXT)
+            );
+            if (!accordionNode) {
+              return false;
+            }
 
-            const paragraphStart = tr.selection.$from.before(tr.selection.$from.depth);
+            const paragraphStart = $from.before($from.depth);
+            const paragraphEnd = $from.after($from.depth);
+            const tr = state.tr.replaceWith(paragraphStart, paragraphEnd, accordionNode);
             tr.setMeta(pluginKey, { add: { id, pos: paragraphStart } });
 
             view.dispatch(tr);
@@ -523,16 +543,21 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
               prompt,
               (delta) => {
                 streamedText += delta;
-                updatePendingPlainText(editor, id, streamedText);
+                updatePendingAccordion(editor, id, streamedText);
               },
-              () => replacePendingResponse(editor, id, streamedText || "No response.", true, true)
+              () => {
+                updateStreamingState(editor, id, false);
+                replacePendingResponse(editor, id, streamedText || "No response.", true, true);
+              }
             ).catch(async (error: Error) => {
               try {
                 const fallback = await fetchLlmResponse("/api/llm", prompt);
+                updateStreamingState(editor, id, false);
                 replacePendingResponse(editor, id, fallback, true, true);
               } catch (fallbackError) {
                 const message =
                   fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+                updateStreamingState(editor, id, false);
                 replacePendingResponse(editor, id, `Error: ${message || error.message}`, true, false);
               }
             });

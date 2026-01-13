@@ -90,6 +90,26 @@ body {
 }
 
 .tiptap {
+  .node-llmAccordion h3 {
+    margin: 0;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .node-llmAccordion button {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.1;
+  }
+
+  .data-\[state\=open\]\:animate-accordion-down[data-state="open"] {
+    animation: accordion-down 0.2s ease-out;
+    border-left: 1px solid lightcoral;
+    margin: 0.5rem;
+  }
+
   /* Link styles */
   a {
     @apply text-blue-600;
