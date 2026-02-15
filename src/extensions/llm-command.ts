@@ -15,6 +15,10 @@ type PendingState = {
 
 const DEFAULT_COMMAND = "/lekha";
 const DEFAULT_ENDPOINT = "/api/llm/stream";
+const DEFAULT_FALLBACK_ENDPOINT = "/api/llm";
+const SEARCH_COMMAND = "/search";
+const SEARCH_ENDPOINT = "/api/search/stream";
+const SEARCH_FALLBACK_ENDPOINT = "/api/search";
 const DEFAULT_LOADING_TEXT = "Loading...";
 
 const pluginKey = new PluginKey<PendingState>("llmCommand");
@@ -487,7 +491,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
         state: {
           init: () => ({ pending: {} }),
           apply: (tr, value) => {
-            let pending = { ...value.pending };
+            const pending = { ...value.pending };
 
             if (tr.docChanged) {
               Object.entries(pending).forEach(([id, pos]) => {
@@ -533,11 +537,24 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
             }
 
             const text = $from.parent.textContent;
-            if (!text.startsWith(command)) {
+            const commandConfig = [
+              {
+                command: SEARCH_COMMAND,
+                endpoint: SEARCH_ENDPOINT,
+                fallbackEndpoint: SEARCH_FALLBACK_ENDPOINT,
+              },
+              {
+                command,
+                endpoint,
+                fallbackEndpoint: DEFAULT_FALLBACK_ENDPOINT,
+              },
+            ].find((config) => text.startsWith(config.command));
+
+            if (!commandConfig) {
               return false;
             }
 
-            const prompt = text.slice(command.length).trim();
+            const prompt = text.slice(commandConfig.command.length).trim();
             if (!prompt) {
               return false;
             }
@@ -550,7 +567,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
               : prompt;
             const id = createId();
             const { schema } = state;
-            const displayPrompt = `${command} ${prompt}`;
+            const displayPrompt = `${commandConfig.command} ${prompt}`;
             const accordionNode = schema.nodes.llmAccordion?.create(
               {
                 prompt: displayPrompt,
@@ -573,7 +590,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
             let streamedText = "";
 
             void streamLlmResponse(
-              endpoint,
+              commandConfig.endpoint,
               promptWithContext,
               (delta) => {
                 streamedText += delta;
@@ -585,7 +602,10 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
               }
             ).catch(async (error: Error) => {
               try {
-                const fallback = await fetchLlmResponse("/api/llm", promptWithContext);
+                const fallback = await fetchLlmResponse(
+                  commandConfig.fallbackEndpoint,
+                  promptWithContext
+                );
                 updateStreamingState(editor, id, false);
                 replacePendingResponse(editor, id, fallback, true, true);
               } catch (fallbackError) {

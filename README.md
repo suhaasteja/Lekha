@@ -31,8 +31,13 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 LIVEBLOCKS_SECRET_KEY=
 OPENAI_API_KEY=
+TINYFISH_API_KEY=
 ```
 
 ```bash
 npm run dev
 ```
+
+Editor commands:
+- `/lekha <prompt>`: generate with OpenAI
+- `/search <query>`: web search with Tinyfish
