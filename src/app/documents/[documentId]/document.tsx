@@ -6,6 +6,7 @@ import { Room } from "./room";
 import { Editor } from "./editor";
 import { Navbar } from "./navbar";
 import { Toolbar } from "./toolbar";
+import { TodoPlanPanel } from "./todo-plan-panel";
 import { api } from "../../../../convex/_generated/api";
 
 interface DocumentProps {
@@ -26,6 +27,7 @@ export const Document = ({ preloadedDocument }: DocumentProps) => {
           <Editor initialContent={document.initialContent} />
         </div>
       </div>
+      <TodoPlanPanel />
     </Room>
   );
 };

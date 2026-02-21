@@ -8,7 +8,6 @@ import StarterKit from "@tiptap/starter-kit";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { common, createLowlight } from "lowlight";
 
-import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 
 import Table from "@tiptap/extension-table";
@@ -38,6 +37,9 @@ import { FontSizeExtensions } from "@/extensions/font-size";
 import { LineHeightExtension } from "@/extensions/line-height";
 import { LlmCommandExtension } from "@/extensions/llm-command";
 import { LlmAccordionExtension } from "@/extensions/llm-accordion";
+import { AiTaskItemExtension } from "@/extensions/ai-task-item";
+import { TodoPlanningExtension } from "@/extensions/todo-planning";
+import { TaskListShortcutExtension } from "@/extensions/task-list-shortcut";
 import { Ruler } from "./ruler";
 import { Threads } from "./threads";
 import { LEFT_MARGIN_DEFAULT, RIGHT_MARGIN_DEFAULT } from "@/constants/margins";
@@ -181,7 +183,9 @@ export const Editor = ({ initialContent }: EditorProps) => {
       Highlight.configure({
         multicolor: true,
       }),
-      TaskItem.configure({ nested: true }),
+      AiTaskItemExtension.configure({ nested: true }),
+      TodoPlanningExtension,
+      TaskListShortcutExtension,
     ],
   });
 
