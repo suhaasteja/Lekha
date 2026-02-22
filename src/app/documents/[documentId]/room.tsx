@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { LiveblocksProvider, RoomProvider, ClientSideSuspense } from "@liveblocks/react/suspense";
+import { LiveMap } from "@liveblocks/client";
 import { useParams } from "next/navigation";
 import { FullscreenLoader } from "@/components/fullscreen-loader";
 import { getUsers, getDocuments } from "./action";
@@ -70,7 +71,11 @@ export function Room({ children }: { children: ReactNode }) {
     >
       <RoomProvider
         id={params.documentId as string}
-        initialStorage={{ leftMargin: LEFT_MARGIN_DEFAULT, rightMargin: RIGHT_MARGIN_DEFAULT }}
+        initialStorage={{
+          leftMargin: LEFT_MARGIN_DEFAULT,
+          rightMargin: RIGHT_MARGIN_DEFAULT,
+          todoPlans: new LiveMap(),
+        }}
       >
         <ClientSideSuspense fallback={<FullscreenLoader label="Room loading..." />}>
           {children}

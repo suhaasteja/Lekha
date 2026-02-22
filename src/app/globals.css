@@ -355,22 +355,35 @@ body {
     padding: 0;
 
     li {
-      align-items: flex-start;
+      align-items: center;
       display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.25rem;
 
       > label {
         flex: 0 0 auto;
-        margin-right: 0.5rem;
         user-select: none;
+        display: flex;
+        align-items: center;
+        margin-right: 0.25rem;
       }
 
       > div {
         flex: 1 1 auto;
       }
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
     }
 
     input[type="checkbox"] {
       cursor: pointer;
+      width: 1rem;
+      height: 1rem;
+      margin: 0;
+      flex-shrink: 0;
     }
 
     ul[data-type="taskList"] {
@@ -407,4 +420,20 @@ body {
 
 div[data-radix-popper-content-wrapper] {
   z-index: 50!important
+}
+
+/* Hide mermaid error messages that appear in DOM */
+.mermaid-error,
+#d-mermaid-error {
+  display: none !important;
+}
+
+/* Hide any orphaned mermaid elements */
+[id^="d-mermaid"] {
+  display: none !important;
+}
+
+/* Only show mermaid diagrams inside our wrapper */
+.mermaid:not([data-processed]) {
+  display: none !important;
 }

@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as csvData from "../csvData.js";
 import type * as documents from "../documents.js";
+import type * as pdfDocuments from "../pdfDocuments.js";
 
 import type {
   ApiFromModules,
@@ -17,7 +19,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  csvData: typeof csvData;
   documents: typeof documents;
+  pdfDocuments: typeof pdfDocuments;
 }>;
 
 /**

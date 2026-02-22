@@ -150,7 +150,8 @@ export const LlmAccordionExtension = Node.create({
   addKeyboardShortcuts() {
     return {
       Backspace: () => {
-        const { state, selection } = this.editor;
+        const { state } = this.editor;
+        const { selection } = state;
 
         if (selection instanceof NodeSelection && selection.node.type.name === this.name) {
           return this.editor.commands.deleteSelection();

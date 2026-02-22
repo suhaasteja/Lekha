@@ -1,3 +1,5 @@
+import type { LiveMap } from "@liveblocks/client";
+
 // Define Liveblocks types for your application
 // https://liveblocks.io/docs/api-reference/liveblocks-react#Typing-your-data
 declare global {
@@ -14,6 +16,13 @@ declare global {
       // animals: LiveList<string>;
       leftMargin: number;
       rightMargin: number;
+      todoPlans: LiveMap<string, {
+        todoId: string;
+        taskDescription: string;
+        aiPlan: string;
+        isStreaming: boolean;
+        createdAt: number;
+      }>;
     };
 
     // Custom user info set when authenticating with a secret key

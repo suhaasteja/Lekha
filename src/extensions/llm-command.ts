@@ -251,7 +251,9 @@ const buildNodesFromResponse = (schema: Editor["schema"], text: string) => {
         flushList();
       }
       listType = nextType;
-      const contentText = (bulletMatch?.[1] || orderedMatch?.[2] || "").trim();
+      const bulletContent = bulletMatch && typeof bulletMatch !== "boolean" ? bulletMatch[1] : "";
+      const orderedContent = orderedMatch && typeof orderedMatch !== "boolean" ? orderedMatch[2] : "";
+      const contentText = (bulletContent || orderedContent || "").trim();
       const paragraph = schema.nodes.paragraph.create(
         null,
         contentText ? parseInline(contentText) : undefined
@@ -495,7 +497,7 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
 
             if (tr.docChanged) {
               Object.entries(pending).forEach(([id, pos]) => {
-                const mapped = tr.mapping.map(pos, -1);
+                const mapped = tr.mapping.map(pos as number, -1);
                 if (!tr.doc.nodeAt(mapped)) {
                   delete pending[id];
                   return;
