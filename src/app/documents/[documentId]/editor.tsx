@@ -40,6 +40,10 @@ import { LlmAccordionExtension } from "@/extensions/llm-accordion";
 import { AiTaskItemExtension } from "@/extensions/ai-task-item";
 import { TodoPlanningExtension } from "@/extensions/todo-planning";
 import { TaskListShortcutExtension } from "@/extensions/task-list-shortcut";
+import { MermaidDiagramExtension } from "@/extensions/mermaid-diagram";
+import { MermaidCommandExtension } from "@/extensions/mermaid-command";
+import { DataVizExtension } from "@/extensions/data-viz";
+import { VizCommandExtension } from "@/extensions/viz-command";
 import { Ruler } from "./ruler";
 import { Threads } from "./threads";
 import { LEFT_MARGIN_DEFAULT, RIGHT_MARGIN_DEFAULT } from "@/constants/margins";
@@ -113,6 +117,8 @@ export const Editor = ({ initialContent }: EditorProps) => {
     immediatelyRender: false,
     onCreate({ editor }) {
       setEditor(editor);
+      // Make editor globally available for viz regeneration
+      (window as Window & { editor?: typeof editor }).editor = editor;
     },
     onDestroy() {
       setEditor(null);
@@ -180,6 +186,10 @@ export const Editor = ({ initialContent }: EditorProps) => {
       }),
       LlmAccordionExtension,
       LlmCommandExtension,
+      MermaidDiagramExtension,
+      MermaidCommandExtension,
+      DataVizExtension,
+      VizCommandExtension,
       Highlight.configure({
         multicolor: true,
       }),

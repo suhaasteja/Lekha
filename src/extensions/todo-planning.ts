@@ -25,6 +25,8 @@ export const setTodoPlanUpdateCallback = (callback: PlanUpdateCallback | null) =
 
 // Event for opening panel with todo
 type OpenPanelCallback = (todoId: string) => void;
+// Keeping this for potential future use in panel integration
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let openPanelCallback: OpenPanelCallback | null = null;
 
 export const setOpenPanelCallback = (callback: OpenPanelCallback | null) => {
