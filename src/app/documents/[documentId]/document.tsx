@@ -7,6 +7,8 @@ import { Editor } from "./editor";
 import { Navbar } from "./navbar";
 import { Toolbar } from "./toolbar";
 import { TodoPlanPanel } from "./todo-plan-panel";
+import { CsvUploadBar } from "./csv-upload-bar";
+// import { PdfContextBar } from "./pdf-context-bar";
 import { api } from "../../../../convex/_generated/api";
 
 interface DocumentProps {
@@ -19,11 +21,13 @@ export const Document = ({ preloadedDocument }: DocumentProps) => {
   return (
     <Room>
       <div className="min-h-screen bg-editor-bg">
-        <div className="flex flex-col px-4 pt-2 gap-y-2 fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-xl border-b border-black/5 print:hidden h-[112px]">
+        <div className="flex flex-col px-4 pt-2 gap-y-2 fixed top-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-xl border-b border-black/5 print:hidden">
           <Navbar data={document} />
           <Toolbar />
+          <CsvUploadBar />
+          {/* <PdfContextBar /> */}
         </div>
-        <div className="pt-[114px] print:pt-0">
+        <div className="pt-[160px] print:pt-0">
           <Editor initialContent={document.initialContent} />
         </div>
       </div>

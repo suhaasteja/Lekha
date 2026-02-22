@@ -421,3 +421,19 @@ body {
 div[data-radix-popper-content-wrapper] {
   z-index: 50!important
 }
+
+/* Hide mermaid error messages that appear in DOM */
+.mermaid-error,
+#d-mermaid-error {
+  display: none !important;
+}
+
+/* Hide any orphaned mermaid elements */
+[id^="d-mermaid"] {
+  display: none !important;
+}
+
+/* Only show mermaid diagrams inside our wrapper */
+.mermaid:not([data-processed]) {
+  display: none !important;
+}
