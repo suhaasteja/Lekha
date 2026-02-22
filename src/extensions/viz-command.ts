@@ -42,8 +42,8 @@ export const VizCommandExtension = Extension.create({
             // Get current line text
             const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
 
-            // Check for /viz, /visualize, or /chart commands
-            const vizMatch = textBefore.match(/\/(viz|visualize|chart)\s+(.+)$/);
+            // Check for /viz or /visualize commands (not /chart - that's for Mermaid)
+            const vizMatch = textBefore.match(/\/(viz|visualize)\s+(.+)$/);
             if (!vizMatch) return false;
 
             const prompt = vizMatch[2]?.trim();
