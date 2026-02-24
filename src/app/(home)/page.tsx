@@ -12,18 +12,13 @@ import { useSearchParam } from "@/hooks/use-search-param";
 import { useAppIdentity } from "@/hooks/use-app-identity";
 import { FullscreenLoader } from "@/components/fullscreen-loader";
 
-const HomeContent = () => {
+const HomeContent = ({ guestId }: { guestId: string | null }) => {
   const [search] = useSearchParam();
-  const { guestId, ready } = useAppIdentity();
   const { results, status, loadMore } = usePaginatedQuery(
     api.documents.get,
     { search, guestId: guestId ?? undefined },
     { initialNumItems: 5 }
   );
-
-  if (!ready) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[radial-gradient(1200px_600px_at_15%_-10%,#e6f4ff_0%,transparent_60%),radial-gradient(900px_500px_at_90%_10%,#f9ead7_0%,transparent_55%)]">
@@ -48,9 +43,15 @@ const HomeContent = () => {
 };
 
 const Home = () => {
+  const { ready, guestId } = useAppIdentity();
+
+  if (!ready) {
+    return <FullscreenLoader label="Loading home..." />;
+  }
+
   return (
     <Suspense fallback={<FullscreenLoader label="Loading home..." />}>
-      <HomeContent />
+      <HomeContent guestId={guestId} />
     </Suspense>
   );
 };
