@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import * as pdfParse from "pdf-parse";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require("pdf-parse");
 
 // Force Node.js runtime (pdf-parse requires Node.js features)
 export const runtime = "nodejs";
@@ -33,8 +34,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Extract text from PDF
-    const pdf = pdfParse.default || pdfParse;
-    const data = await pdf(buffer);
+    const data = await pdfParse(buffer);
 
     return NextResponse.json({
       text: data.text,
