@@ -916,6 +916,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
 
     actions: {
       loadCsvData: async (params, setState) => {
+        if (!params) return;
         console.log("Loading CSV data:", params.csvId);
         setState((prev) => ({
           ...prev,
@@ -924,6 +925,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
       },
 
       computeAggregates: async (params, setState, state) => {
+        if (!params) return;
         const stateObj = state as Record<string, unknown>;
         const csvDataObj = stateObj?.csvData as { data?: Array<Record<string, unknown>> } | undefined;
         const csvData = csvDataObj?.data;

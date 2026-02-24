@@ -70,7 +70,10 @@ export const VizCommandExtension = Extension.create({
 
             // Trigger viz generation after view update
             setTimeout(() => {
-              generateViz(view.dom.ownerDocument.defaultView!.editor, prompt, vizNode.attrs.vizId);
+              const win = view.dom.ownerDocument.defaultView as Window & { editor?: Editor };
+              if (win?.editor) {
+                generateViz(win.editor, prompt, vizNode.attrs.vizId);
+              }
             }, 0);
 
             return true;
@@ -244,8 +247,9 @@ function updateVizNode(editor: Editor, vizId: string, spec: Spec, isStreaming: b
   });
 
   if (nodePos !== null && foundAttrs) {
+    const attrs = foundAttrs as Record<string, unknown>;
     // Extract csvId from spec if present (look for loadCsvData action params)
-    let csvId = foundAttrs.csvId;
+    let csvId = attrs.csvId;
 
     if (!csvId && spec.elements) {
       // Try to find csvId in action params
@@ -259,7 +263,7 @@ function updateVizNode(editor: Editor, vizId: string, spec: Spec, isStreaming: b
     }
 
     const tr = state.tr.setNodeMarkup(nodePos, undefined, {
-      ...foundAttrs,
+      ...attrs,
       spec,
       csvId,
       isStreaming,
@@ -285,8 +289,9 @@ function updateVizNodeError(editor: Editor, vizId: string, errorMessage: string)
   });
 
   if (nodePos !== null && foundAttrs) {
+    const attrs = foundAttrs as Record<string, unknown>;
     const tr = state.tr.setNodeMarkup(nodePos, undefined, {
-      ...foundAttrs,
+      ...attrs,
       error: errorMessage,
       isStreaming: false,
     });

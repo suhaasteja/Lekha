@@ -494,9 +494,9 @@ export const LlmCommandExtension = Extension.create<LlmCommandOptions>({
       new Plugin({
         key: pluginKey,
         state: {
-          init: () => ({ pending: {} }),
+          init: () => ({ pending: {} as Record<string, number> }),
           apply: (tr, value) => {
-            const pending = { ...value.pending };
+            const pending: Record<string, number> = { ...value.pending };
 
             if (tr.docChanged) {
               Object.entries(pending).forEach(([id, pos]) => {

@@ -1,8 +1,8 @@
 "use client";
 
 import { Node, mergeAttributes } from "@tiptap/core";
-import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewProps } from "@tiptap/react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -119,7 +119,7 @@ export const DataVizExtension = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DataVizComponent);
+    return ReactNodeViewRenderer(DataVizComponent as unknown as React.ComponentType<NodeViewProps>);
   },
 });
 
