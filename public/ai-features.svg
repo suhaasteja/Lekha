@@ -1,0 +1,39 @@
+<svg width="360" height="480" viewBox="0 0 360 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="360" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#EFF6FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="360" height="480" rx="24" fill="url(#bg)"/>
+  <rect x="24" y="24" width="312" height="432" rx="18" fill="white" stroke="#D1D5DB"/>
+
+  <rect x="48" y="52" width="204" height="20" rx="8" fill="#0F172A"/>
+  <rect x="48" y="84" width="160" height="10" rx="5" fill="#94A3B8"/>
+
+  <rect x="48" y="120" width="264" height="64" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="62" y="144" fill="#334155" font-size="12" font-family="Arial, sans-serif">/lekha launch plan</text>
+  <text x="62" y="164" fill="#334155" font-size="12" font-family="Arial, sans-serif">/viz @sales.csv monthly trend</text>
+
+  <rect x="48" y="204" width="82" height="28" rx="14" fill="#DBEAFE"/>
+  <text x="69" y="222" fill="#1D4ED8" font-size="11" font-family="Arial, sans-serif">/lekha</text>
+
+  <rect x="140" y="204" width="82" height="28" rx="14" fill="#DCFCE7"/>
+  <text x="163" y="222" fill="#15803D" font-size="11" font-family="Arial, sans-serif">/viz</text>
+
+  <rect x="232" y="204" width="82" height="28" rx="14" fill="#FEE2E2"/>
+  <text x="248" y="222" fill="#B91C1C" font-size="11" font-family="Arial, sans-serif">/search</text>
+
+  <rect x="48" y="252" width="264" height="84" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="62" y="268" width="170" height="10" rx="5" fill="#CBD5E1"/>
+  <rect x="62" y="286" width="220" height="10" rx="5" fill="#E2E8F0"/>
+  <rect x="62" y="304" width="200" height="10" rx="5" fill="#E2E8F0"/>
+
+  <circle cx="290" cy="92" r="22" fill="#EEF2FF" stroke="#C7D2FE"/>
+  <path d="M290 80v24M278 92h24" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+
+  <rect x="48" y="356" width="264" height="70" rx="12" fill="#FAF5FF" stroke="#E9D5FF"/>
+  <text x="62" y="382" fill="#6B21A8" font-size="12" font-family="Arial, sans-serif">AI Features Quickstart</text>
+  <text x="62" y="402" fill="#7C3AED" font-size="11" font-family="Arial, sans-serif">Collaborate, generate, search, visualize.</text>
+</svg>

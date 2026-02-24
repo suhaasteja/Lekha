@@ -9,6 +9,7 @@ import { getUsers, getDocuments } from "./action";
 import { toast } from "sonner";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { LEFT_MARGIN_DEFAULT, RIGHT_MARGIN_DEFAULT } from "@/constants/margins";
+import { getOrCreateGuestId } from "@/lib/guest-identity";
 
 type User = { id: string; name: string; avatar: string; color: string; };
 
@@ -42,7 +43,7 @@ export function Room({ children }: { children: ReactNode }) {
 
         const response = await fetch(endpoint, {
           method: "POST",
-          body: JSON.stringify({ room }),
+          body: JSON.stringify({ room, guestId: getOrCreateGuestId() }),
         });
 
         return await response.json();

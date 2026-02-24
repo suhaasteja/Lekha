@@ -15,7 +15,7 @@ Your plan should include:
 - Potential blockers or considerations
 - Success criteria
 
-Format your response in markdown with clear sections. Keep it concise but comprehensive.`;
+Format your response clear sections. Keep it concise but comprehensive.`;
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {

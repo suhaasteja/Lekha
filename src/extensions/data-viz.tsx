@@ -20,6 +20,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useInferenceStore } from "@/store/use-inference-store";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface CsvFileData {
   _id: Id<"csvData">;
@@ -144,6 +145,7 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
   const [state, setState] = useState<Record<string, unknown>>({});
   const [shouldGenerate, setShouldGenerate] = useState(false);
   const inferenceProvider = useInferenceStore((s) => s.provider);
+  const { guestId } = useAppIdentity();
 
   const initialPrompt = node.attrs.prompt as string;
   const initialSpec = node.attrs.spec as Spec | null;
@@ -204,7 +206,7 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
   // Load CSV data if csvId is available
   const csvData = useQuery(
     api.csvData.getById,
-    csvId ? { csvId } : "skip"
+    csvId ? { csvId, guestId: guestId ?? undefined } : "skip"
   );
 
   // Transform CSV data into state when loaded

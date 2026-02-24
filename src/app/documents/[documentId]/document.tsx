@@ -1,6 +1,6 @@
 "use client";
 
-import { Preloaded, usePreloadedQuery } from "convex/react";
+import { useQuery } from "convex/react";
 
 import { Room } from "./room";
 import { Editor } from "./editor";
@@ -10,13 +10,28 @@ import { TodoPlanPanel } from "./todo-plan-panel";
 import { CsvUploadBar } from "./csv-upload-bar";
 // import { PdfContextBar } from "./pdf-context-bar";
 import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
+import { useAppIdentity } from "@/hooks/use-app-identity";
+import { FullscreenLoader } from "@/components/fullscreen-loader";
 
 interface DocumentProps {
-  preloadedDocument: Preloaded<typeof api.documents.getById>;
+  documentId: Id<"documents">;
 }
 
-export const Document = ({ preloadedDocument }: DocumentProps) => {
-  const document = usePreloadedQuery(preloadedDocument);
+export const Document = ({ documentId }: DocumentProps) => {
+  const { guestId, ready } = useAppIdentity();
+  const document = useQuery(
+    api.documents.getById,
+    ready ? { id: documentId, guestId: guestId ?? undefined } : "skip"
+  );
+
+  if (!ready || document === undefined) {
+    return <FullscreenLoader label="Loading document..." />;
+  }
+
+  if (!document) {
+    return <FullscreenLoader label="Document not found or access denied." />;
+  }
 
   return (
     <Room>

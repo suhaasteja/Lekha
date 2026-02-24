@@ -13,10 +13,15 @@ export async function getDocuments(ids: Id<"documents">[]) {
 
 export async function getUsers() {
   const { sessionClaims } = await auth();
+  const organizationId = sessionClaims?.org_id as string | undefined;
+  if (!organizationId) {
+    return [];
+  }
+
   const clerk = await clerkClient();
 
   const response = await clerk.users.getUserList({
-    organizationId: [sessionClaims?.org_id as string],
+    organizationId: [organizationId],
   });
 
   const users = response.data.map((user) => ({

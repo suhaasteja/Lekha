@@ -11,6 +11,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { LoaderIcon } from "lucide-react";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface DocumentInputProps {
   title: string;
@@ -19,6 +20,7 @@ interface DocumentInputProps {
 
 export const DocumentInput = ({ title, id }: DocumentInputProps) => {
   const status = useStatus();
+  const { guestId } = useAppIdentity();
 
   const [value, setValue] = useState(title);
   const [isPending, setIsPending] = useState(false);
@@ -31,7 +33,7 @@ export const DocumentInput = ({ title, id }: DocumentInputProps) => {
     if (newValue === title) return;
 
     setIsPending(true);
-    mutate({ id, title: newValue })
+    mutate({ id, title: newValue, guestId: guestId ?? undefined })
       .then(() => toast.success("Document updated"))
       .catch(() => toast.error("Sometimes went wrong"))
       .finally(() => setIsPending(false));
@@ -41,7 +43,7 @@ export const DocumentInput = ({ title, id }: DocumentInputProps) => {
     e.preventDefault();
 
     setIsPending(true);
-    mutate({ id, title: value })
+    mutate({ id, title: value, guestId: guestId ?? undefined })
       .then(() => {
         toast.success("Document updated");
         setIsEditing(false);

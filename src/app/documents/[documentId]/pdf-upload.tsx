@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface PdfUploadDialogProps {
   open: boolean;
@@ -27,8 +28,9 @@ export function PdfUploadDialog({ open, onOpenChange }: PdfUploadDialogProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { guestId } = useAppIdentity();
 
-  const pdfs = useQuery(api.pdfDocuments.getByDocument, { documentId });
+  const pdfs = useQuery(api.pdfDocuments.getByDocument, { documentId, guestId: guestId ?? undefined });
   const uploadMutation = useMutation(api.pdfDocuments.upload);
   const deleteMutation = useMutation(api.pdfDocuments.deleteById);
 
@@ -99,6 +101,7 @@ export function PdfUploadDialog({ open, onOpenChange }: PdfUploadDialogProps) {
         storageId: storageId as Id<"_storage">,
         extractedText: text,
         pageCount,
+        guestId: guestId ?? undefined,
       });
 
       toast.success(`Successfully uploaded ${file.name}`);
@@ -121,7 +124,7 @@ export function PdfUploadDialog({ open, onOpenChange }: PdfUploadDialogProps) {
     if (!confirm(`Delete ${fileName}?`)) return;
 
     try {
-      await deleteMutation({ pdfId });
+      await deleteMutation({ pdfId, guestId: guestId ?? undefined });
       toast.success(`Deleted ${fileName}`);
     } catch (error) {
       console.error("Delete error:", error);

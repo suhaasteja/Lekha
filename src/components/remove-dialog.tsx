@@ -18,6 +18,7 @@ import {
 
 import { Id } from "../../convex/_generated/dataModel";
 import { api } from "../../convex/_generated/api";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface RemoveDialogProps {
   documentId: Id<"documents">;
@@ -26,6 +27,7 @@ interface RemoveDialogProps {
 
 export const RemoveDialog = ({ documentId, children }: RemoveDialogProps) => {
   const remove = useMutation(api.documents.removeById);
+  const { guestId } = useAppIdentity();
   const [isRemoving, setIsRemoving] = useState(false);
 
   return (
@@ -45,7 +47,7 @@ export const RemoveDialog = ({ documentId, children }: RemoveDialogProps) => {
             onClick={(e) => {
               e.stopPropagation();
               setIsRemoving(false);
-              remove({ id: documentId })
+              remove({ id: documentId, guestId: guestId ?? undefined })
                 .catch(() => toast.error("Something went wrong"))
                 .then(() => {
                   toast.success("Document removed");

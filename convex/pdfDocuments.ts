@@ -1,6 +1,33 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Doc, Id } from "./_generated/dataModel";
+
+const isGuestDocument = (ownerId: string) => ownerId.startsWith("guest:");
+const asGuestOwnerId = (guestId: string) => `guest:${guestId}`;
+
+async function canAccessDocument(ctx: any, documentId: string) {
+  const document = await ctx.db.get(documentId);
+  if (!document) {
+    return false;
+  }
+
+  if (isGuestDocument(document.ownerId)) {
+    return true;
+  }
+
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    return false;
+  }
+
+  const organizationId = (identity.organization_id ?? undefined) as string | undefined;
+  const isOwner = document.ownerId === identity.subject;
+  const isOrgMember = !!(
+    document.organizationId &&
+    document.organizationId === organizationId
+  );
+
+  return isOwner || isOrgMember;
+}
 
 export const upload = mutation({
   args: {
@@ -10,12 +37,15 @@ export const upload = mutation({
     storageId: v.id("_storage"),
     extractedText: v.string(),
     pageCount: v.number(),
+    guestId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized");
+    const allowed = await canAccessDocument(ctx, args.documentId);
+    if (!allowed) {
+      throw new ConvexError("Unauthorized");
     }
+
+    const identity = await ctx.auth.getUserIdentity();
 
     const pdfId = await ctx.db.insert("pdfDocuments", {
       documentId: args.documentId,
@@ -24,9 +54,9 @@ export const upload = mutation({
       storageId: args.storageId,
       extractedText: args.extractedText,
       pageCount: args.pageCount,
-      uploadedBy: identity.subject,
+      uploadedBy: identity?.subject ?? asGuestOwnerId(args.guestId ?? "anonymous"),
       uploadedAt: Date.now(),
-      organizationId: typeof identity.organizationId === "string" ? identity.organizationId : undefined,
+      organizationId: typeof identity?.organization_id === "string" ? identity.organization_id : undefined,
     });
 
     return pdfId;
@@ -34,19 +64,17 @@ export const upload = mutation({
 });
 
 export const getByDocument = query({
-  args: { documentId: v.id("documents") },
+  args: { documentId: v.id("documents"), guestId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const allowed = await canAccessDocument(ctx, args.documentId);
+    if (!allowed) {
       return [];
     }
 
-    const pdfs = await ctx.db
+    return await ctx.db
       .query("pdfDocuments")
       .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
       .collect();
-
-    return pdfs;
   },
 });
 
@@ -54,10 +82,11 @@ export const searchContext = query({
   args: {
     documentId: v.id("documents"),
     searchQuery: v.string(),
+    guestId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const allowed = await canAccessDocument(ctx, args.documentId);
+    if (!allowed) {
       return [];
     }
 
@@ -78,30 +107,19 @@ export const searchContext = query({
 });
 
 export const deleteById = mutation({
-  args: { pdfId: v.id("pdfDocuments") },
+  args: { pdfId: v.id("pdfDocuments"), guestId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized");
-    }
-
     const pdf = await ctx.db.get(args.pdfId);
     if (!pdf) {
-      throw new Error("PDF not found");
+      throw new ConvexError("PDF not found");
     }
 
-    // Verify user has access (owner or org member)
-    if (
-      pdf.uploadedBy !== identity.subject &&
-      (!pdf.organizationId || pdf.organizationId !== identity.organizationId)
-    ) {
-      throw new Error("Unauthorized");
+    const allowed = await canAccessDocument(ctx, pdf.documentId);
+    if (!allowed) {
+      throw new ConvexError("Unauthorized");
     }
 
-    // Delete from storage
     await ctx.storage.delete(pdf.storageId);
-
-    // Delete from database
     await ctx.db.delete(args.pdfId);
 
     return { success: true };
@@ -109,23 +127,15 @@ export const deleteById = mutation({
 });
 
 export const getById = query({
-  args: { pdfId: v.id("pdfDocuments") },
+  args: { pdfId: v.id("pdfDocuments"), guestId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
-
     const pdf = await ctx.db.get(args.pdfId);
     if (!pdf) {
       return null;
     }
 
-    // Verify access
-    if (
-      pdf.uploadedBy !== identity.subject &&
-      (!pdf.organizationId || pdf.organizationId !== identity.organizationId)
-    ) {
+    const allowed = await canAccessDocument(ctx, pdf.documentId);
+    if (!allowed) {
       return null;
     }
 

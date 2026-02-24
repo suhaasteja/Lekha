@@ -1,7 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { SearchInput } from "./search-input";
-import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  OrganizationSwitcher,
+} from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export const Navbar = () => {
   return (
@@ -17,13 +24,20 @@ export const Navbar = () => {
       </div>
       <SearchInput />
       <div className="flex gap-3 items-center pl-6">
-        <OrganizationSwitcher
-          afterCreateOrganizationUrl="/"
-          afterLeaveOrganizationUrl="/"
-          afterSelectOrganizationUrl="/"
-          afterSelectPersonalUrl="/"
-        />
-        <UserButton />
+        <SignedIn>
+          <OrganizationSwitcher
+            afterCreateOrganizationUrl="/"
+            afterLeaveOrganizationUrl="/"
+            afterSelectOrganizationUrl="/"
+            afterSelectPersonalUrl="/"
+          />
+          <UserButton />
+        </SignedIn>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button size="sm">Sign in</Button>
+          </SignInButton>
+        </SignedOut>
       </div>
     </nav>
   );

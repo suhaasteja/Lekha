@@ -11,7 +11,7 @@ interface InferenceState {
 export const useInferenceStore = create<InferenceState>()(
   persist(
     (set) => ({
-      provider: "openai",
+      provider: "cerebras",
       setProvider: (provider) => set({ provider }),
     }),
     {

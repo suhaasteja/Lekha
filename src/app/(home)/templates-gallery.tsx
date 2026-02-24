@@ -15,15 +15,17 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 export const TemplatesGallery = () => {
   const router = useRouter();
   const create = useMutation(api.documents.create);
   const [isCreating, setIsCreating] = useState(false);
+  const { guestId } = useAppIdentity();
 
   const onTemplateClick = (title: string, initialContent: string) => {
     setIsCreating(true);
-    create({ title, initialContent })
+    create({ title, initialContent, guestId: guestId ?? undefined })
       .catch(() => toast.error("Something went wrong"))
       .then((documentId) => {
         toast.success("Document created");

@@ -7,6 +7,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { FileText, X, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 import { cn } from "@/lib/utils";
 
 export function PdfContextBar() {
@@ -16,8 +17,9 @@ export function PdfContextBar() {
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { guestId } = useAppIdentity();
 
-  const pdfs = useQuery(api.pdfDocuments.getByDocument, { documentId });
+  const pdfs = useQuery(api.pdfDocuments.getByDocument, { documentId, guestId: guestId ?? undefined });
   const uploadMutation = useMutation(api.pdfDocuments.upload);
   const deleteMutation = useMutation(api.pdfDocuments.deleteById);
 
@@ -80,6 +82,7 @@ export function PdfContextBar() {
         storageId: storageId as Id<"_storage">,
         extractedText: text,
         pageCount,
+        guestId: guestId ?? undefined,
       });
 
       toast.success(`Added ${file.name} to context`);
@@ -124,7 +127,7 @@ export function PdfContextBar() {
 
   const handleDelete = async (pdfId: Id<"pdfDocuments">, fileName: string) => {
     try {
-      await deleteMutation({ pdfId });
+      await deleteMutation({ pdfId, guestId: guestId ?? undefined });
       toast.success(`Removed ${fileName} from context`);
     } catch (error) {
       console.error("Delete error:", error);

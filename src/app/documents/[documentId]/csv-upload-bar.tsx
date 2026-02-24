@@ -8,6 +8,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import { FileSpreadsheet, X, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 export function CsvUploadBar() {
   const params = useParams();
@@ -16,8 +17,9 @@ export function CsvUploadBar() {
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { guestId } = useAppIdentity();
 
-  const csvFiles = useQuery(api.csvData.getByDocument, { documentId });
+  const csvFiles = useQuery(api.csvData.getByDocument, { documentId, guestId: guestId ?? undefined });
   const uploadMutation = useMutation(api.csvData.upload);
   const deleteMutation = useMutation(api.csvData.deleteById);
 
@@ -67,6 +69,7 @@ export function CsvUploadBar() {
         headers,
         rows,
         rowCount,
+        guestId: guestId ?? undefined,
       });
 
       toast.success(`Added ${file.name} (${rowCount} rows)`);
@@ -111,7 +114,7 @@ export function CsvUploadBar() {
 
   const handleDelete = async (csvId: Id<"csvData">, fileName: string) => {
     try {
-      await deleteMutation({ csvId });
+      await deleteMutation({ csvId, guestId: guestId ?? undefined });
       toast.success(`Removed ${fileName}`);
     } catch (error) {
       console.error("Delete error:", error);

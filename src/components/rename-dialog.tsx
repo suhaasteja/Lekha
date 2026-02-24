@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface RenameDialogProps {
   documentId: Id<"documents">;
@@ -26,6 +27,7 @@ interface RenameDialogProps {
 
 export const RenameDialog = ({ documentId, initialTitle, children }: RenameDialogProps) => {
   const update = useMutation(api.documents.updateById);
+  const { guestId } = useAppIdentity();
   const [isUpdating, setIsUpdating] = useState(false);
 
   const [title, setTitle] = useState(initialTitle);
@@ -35,7 +37,7 @@ export const RenameDialog = ({ documentId, initialTitle, children }: RenameDialo
     e.preventDefault();
     setIsUpdating(true);
 
-    update({ id: documentId, title: title.trim() || "Untitled" })
+    update({ id: documentId, title: title.trim() || "Untitled", guestId: guestId ?? undefined })
       .catch(() => toast.error("Something went wrong"))
       .then(() => toast.success("Document renamed"))
       .finally(() => {

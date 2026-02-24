@@ -45,13 +45,21 @@ import { InferenceProviderSelector } from "@/components/inference-provider-selec
 
 import { DocumentInput } from "./document-input";
 import { useEditorStore } from "@/store/use-editor-store";
-import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import {
+  OrganizationSwitcher,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 import { Inbox } from "./inbox";
 import { Doc } from "../../../../convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useAppIdentity } from "@/hooks/use-app-identity";
 
 interface NavbarProps {
   data: Doc<"documents">;
@@ -60,12 +68,14 @@ interface NavbarProps {
 export const Navbar = ({ data }: NavbarProps) => {
   const router = useRouter();
   const { editor } = useEditorStore();
+  const { guestId } = useAppIdentity();
 
   const mutation = useMutation(api.documents.create);
   const onNewDocument = () => {
     mutation({
       title: "Untitled Document",
       initialContent: "",
+      guestId: guestId ?? undefined,
     })
       .catch(() => toast.error("Something went wrong"))
       .then((id) => {
@@ -283,13 +293,20 @@ export const Navbar = ({ data }: NavbarProps) => {
         <InferenceProviderSelector />
         <Avatars />
         <Inbox />
-        <OrganizationSwitcher
-          afterCreateOrganizationUrl="/"
-          afterLeaveOrganizationUrl="/"
-          afterSelectOrganizationUrl="/"
-          afterSelectPersonalUrl="/"
-        />
-        <UserButton />
+        <SignedIn>
+          <OrganizationSwitcher
+            afterCreateOrganizationUrl="/"
+            afterLeaveOrganizationUrl="/"
+            afterSelectOrganizationUrl="/"
+            afterSelectPersonalUrl="/"
+          />
+          <UserButton />
+        </SignedIn>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button size="sm">Sign in</Button>
+          </SignInButton>
+        </SignedOut>
       </div>
     </nav>
   );
