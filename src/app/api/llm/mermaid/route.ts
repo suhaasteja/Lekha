@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-
-const OPENAI_URL = "https://api.openai.com/v1/responses";
+import {
+  type InferenceProvider,
+  createInferenceRequest,
+  extractTextFromResponse,
+  getApiKey,
+} from "@/lib/inference";
 
 const SYSTEM_PROMPT = `You are a mermaid diagram expert. Generate valid mermaid.js syntax for flowcharts and process diagrams.
 
@@ -24,18 +28,25 @@ flowchart TD
 \`\`\``;
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "Missing OPENAI_API_KEY." }, { status: 500 });
-  }
+  const body = (await request.json().catch(() => null)) as {
+    prompt?: string;
+    provider?: InferenceProvider;
+  } | null;
 
-  const body = (await request.json().catch(() => null)) as { prompt?: string } | null;
   const userPrompt = body?.prompt?.trim();
   if (!userPrompt) {
     return NextResponse.json({ error: "Prompt is required." }, { status: 400 });
   }
 
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const provider: InferenceProvider = body?.provider || "openai";
+  const apiKey = getApiKey(provider);
+
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: `Missing API key for ${provider}.` },
+      { status: 500 }
+    );
+  }
 
   const fullPrompt = `${SYSTEM_PROMPT}
 
@@ -43,26 +54,23 @@ User request: ${userPrompt}
 
 Generate the mermaid diagram code:`;
 
-  const response = await fetch(OPENAI_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      input: fullPrompt,
-      stream: false,
-    }),
-  });
+  try {
+    const response = await createInferenceRequest(fullPrompt, { provider }, false);
 
-  if (!response.ok) {
-    const detail = await response.text();
-    return NextResponse.json({ error: "OpenAI request failed.", detail }, { status: 502 });
+    if (!response.ok) {
+      const detail = await response.text();
+      return NextResponse.json(
+        { error: `${provider} request failed.`, detail },
+        { status: 502 }
+      );
+    }
+
+    const data = await response.json();
+    const text = extractTextFromResponse(data, provider);
+
+    return NextResponse.json({ text });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const data = await response.json();
-  const text = data.text || data.output || "";
-
-  return NextResponse.json({ text });
 }

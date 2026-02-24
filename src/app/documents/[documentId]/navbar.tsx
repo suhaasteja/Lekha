@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/menubar";
 
 import { Avatars } from "./avatars";
+import { InferenceProviderSelector } from "@/components/inference-provider-selector";
 
 import { DocumentInput } from "./document-input";
 import { useEditorStore } from "@/store/use-editor-store";
@@ -279,6 +280,7 @@ export const Navbar = ({ data }: NavbarProps) => {
         </div>
       </div>
       <div className="flex gap-3 items-center pl-6">
+        <InferenceProviderSelector />
         <Avatars />
         <Inbox />
         <OrganizationSwitcher

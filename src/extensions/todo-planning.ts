@@ -2,6 +2,7 @@
 
 import { Extension, type Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
+import { getInferenceProvider } from "@/store/use-inference-store";
 
 const TODO_PLAN_ENDPOINT = "/api/llm/todo-plan/stream";
 const TODO_PLAN_FALLBACK_ENDPOINT = "/api/llm/todo-plan";
@@ -63,12 +64,13 @@ const streamTodoPlan = async (
   onDelta: (delta: string) => void,
   onDone: () => void
 ) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ taskDescription }),
+    body: JSON.stringify({ taskDescription, provider }),
   });
 
   if (!response.ok || !response.body) {
@@ -143,12 +145,13 @@ const streamTodoPlan = async (
 };
 
 const fetchTodoPlan = async (endpoint: string, taskDescription: string) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ taskDescription }),
+    body: JSON.stringify({ taskDescription, provider }),
   });
 
   if (!response.ok) {

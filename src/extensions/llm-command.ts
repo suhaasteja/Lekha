@@ -3,6 +3,7 @@
 import { Extension, type Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Fragment, type Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { getInferenceProvider } from "@/store/use-inference-store";
 
 type LlmCommandOptions = {
   command: string;
@@ -363,12 +364,13 @@ const streamLlmResponse = async (
   onDelta: (delta: string) => void,
   onDone: () => void
 ) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, provider }),
   });
 
   if (!response.ok || !response.body) {
@@ -452,12 +454,13 @@ const streamLlmResponse = async (
 };
 
 const fetchLlmResponse = async (endpoint: string, prompt: string) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, provider }),
   });
 
   if (!response.ok) {

@@ -2,6 +2,7 @@
 
 import { Extension, type Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
+import { getInferenceProvider } from "@/store/use-inference-store";
 
 const MERMAID_COMMAND = "/mermaid";
 const CHART_COMMAND = "/chart";
@@ -78,12 +79,13 @@ const streamMermaidGeneration = async (
   onDelta: (delta: string) => void,
   onDone: () => void
 ) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, provider }),
   });
 
   if (!response.ok || !response.body) {
@@ -158,12 +160,13 @@ const streamMermaidGeneration = async (
 };
 
 const fetchMermaidGeneration = async (endpoint: string, prompt: string) => {
+  const provider = getInferenceProvider();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, provider }),
   });
 
   if (!response.ok) {

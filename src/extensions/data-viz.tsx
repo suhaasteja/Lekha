@@ -19,6 +19,7 @@ import { VizRenderer } from "@/lib/viz/renderer";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { useInferenceStore } from "@/store/use-inference-store";
 
 interface CsvFileData {
   _id: Id<"csvData">;
@@ -142,6 +143,7 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
   const [copied, setCopied] = useState(false);
   const [state, setState] = useState<Record<string, unknown>>({});
   const [shouldGenerate, setShouldGenerate] = useState(false);
+  const inferenceProvider = useInferenceStore((s) => s.provider);
 
   const initialPrompt = node.attrs.prompt as string;
   const initialSpec = node.attrs.spec as Spec | null;
@@ -166,7 +168,10 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
     onError: (err) => console.error("Viz generation error:", err),
     onComplete: (completedSpec) => {
       if (completedSpec) {
-        updateAttributes({ spec: completedSpec, isStreaming: false });
+        // Defer state update to avoid flushSync error
+        setTimeout(() => {
+          updateAttributes({ spec: completedSpec, isStreaming: false });
+        }, 0);
       }
     },
   });
@@ -181,7 +186,8 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
 
       // Update csvId if a specific file was mentioned
       if (selectedCsvId && !attrCsvId) {
-        updateAttributes({ csvId: selectedCsvId });
+        // Defer to avoid flushSync error
+        setTimeout(() => updateAttributes({ csvId: selectedCsvId }), 0);
       }
 
       // Include sample rows for better context in AI generation
@@ -191,9 +197,9 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
         sampleRows: csv.rows?.slice(0, 5) || [],
       }));
 
-      send(cleanedPrompt, { csvFiles: enrichedCsvFiles, state: {} });
+      send(cleanedPrompt, { csvFiles: enrichedCsvFiles, state: {}, provider: inferenceProvider });
     }
-  }, [initialPrompt, initialSpec, isStreaming, shouldGenerate, send, csvFiles, attrCsvId, updateAttributes]);
+  }, [initialPrompt, initialSpec, isStreaming, shouldGenerate, send, csvFiles, attrCsvId, updateAttributes, inferenceProvider]);
 
   // Load CSV data if csvId is available
   const csvData = useQuery(
@@ -236,7 +242,7 @@ function DataVizComponent({ node, updateAttributes, deleteNode }: DataVizCompone
 
       // Update node attribute with csvId if not set
       if (!attrCsvId && csvId) {
-        updateAttributes({ csvId });
+        setTimeout(() => updateAttributes({ csvId }), 0);
       }
     }
   }, [csvData, csvId, attrCsvId, updateAttributes]);

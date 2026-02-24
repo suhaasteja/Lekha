@@ -3,6 +3,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import type { Editor } from "@tiptap/core";
 import type { Spec } from "@json-render/react";
+import { getInferenceProvider } from "@/store/use-inference-store";
 
 interface CsvFileData {
   _id: string;
@@ -140,6 +141,7 @@ async function generateViz(editor: Editor, prompt: string, vizId: string) {
     }));
 
     // Stream viz generation
+    const provider = getInferenceProvider();
     const response = await fetch("/api/llm/viz/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,6 +152,7 @@ async function generateViz(editor: Editor, prompt: string, vizId: string) {
           state: {},
           selectedFiles: mentionedFiles, // Pass info about which files were selected
         },
+        provider,
       }),
     });
 
