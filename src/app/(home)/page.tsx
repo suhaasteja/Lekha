@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePaginatedQuery } from "convex/react";
 
 import { Navbar } from "./navbar";
@@ -9,8 +10,9 @@ import { DocumentsTable } from "./documents-table";
 import { api } from "../../../convex/_generated/api";
 import { useSearchParam } from "@/hooks/use-search-param";
 import { useAppIdentity } from "@/hooks/use-app-identity";
+import { FullscreenLoader } from "@/components/fullscreen-loader";
 
-const Home = () => {
+const HomeContent = () => {
   const [search] = useSearchParam();
   const { guestId, ready } = useAppIdentity();
   const { results, status, loadMore } = usePaginatedQuery(
@@ -42,6 +44,14 @@ const Home = () => {
         <DocumentsTable documents={results} loadMore={loadMore} status={status} />
       </div>
     </div>
+  );
+};
+
+const Home = () => {
+  return (
+    <Suspense fallback={<FullscreenLoader label="Loading home..." />}>
+      <HomeContent />
+    </Suspense>
   );
 };
 
