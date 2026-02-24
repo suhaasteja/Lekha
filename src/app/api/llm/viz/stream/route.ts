@@ -1,9 +1,94 @@
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { vizCatalog } from "@/lib/viz/catalog";
+import type { InferenceProvider } from "@/lib/inference";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
+
+const CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions";
+
+// Stream Cerebras response and convert to text stream
+async function streamCerebras(systemPrompt: string, userPrompt: string): Promise<Response> {
+  const apiKey = process.env.CEREBRAS_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing CEREBRAS_API_KEY");
+  }
+
+  const model = process.env.CEREBRAS_MODEL || "llama3.1-8b";
+
+  const response = await fetch(CEREBRAS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      stream: true,
+      max_tokens: 4096,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    const detail = await response.text();
+    throw new Error(`Cerebras request failed: ${detail}`);
+  }
+
+  // Transform Cerebras SSE to plain text stream
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async pull(controller) {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          controller.close();
+          return;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (!data || data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data) as {
+              choices?: Array<{
+                delta?: { content?: string };
+                finish_reason?: string | null;
+              }>;
+            };
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+            if (parsed.choices?.[0]?.finish_reason === "stop") {
+              controller.close();
+              return;
+            }
+          } catch {
+            // Skip malformed chunks
+          }
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
 
 interface CsvFile {
   _id: string;
@@ -116,13 +201,15 @@ ${basePrompt}
 
 You are creating data visualizations from CSV data. The CSV data is already loaded and available at { $state: '/csvData/data' }.
 
-### Important Rules:
-1. For ALL charts (BarChart, LineChart, AreaChart, PieChart, ScatterChart, Table), ALWAYS include: "data": { "$state": "/csvData/data" }
+### CRITICAL Rules (MUST follow):
+1. EVERY chart component (BarChart, LineChart, AreaChart, PieChart, ScatterChart, Table) MUST include: "data": { "$state": "/csvData/data" }
 2. Match column names EXACTLY as they appear in the CSV headers (case-sensitive)
-3. Use aggregate functions when needed: "sum", "count", "avg", "min", "max"
-4. For dates, use them as xKey with aggregation to group by day/month
-5. Create COMPLETE dashboard layouts with multiple visualizations when appropriate
-6. StatCard is for displaying single KPI values - use a static number or string, NOT data binding. For example: { "label": "Total Sales", "value": 12500, "format": "currency" }
+3. Charts use aggregate prop: "aggregate": "sum" (or "count", "avg", "min", "max")
+4. StatCard MUST have a static number value - calculate from the sample data provided. Example: {"type":"StatCard","props":{"label":"Total Revenue","value":4500}}
+5. DO NOT use {"$state":...} for StatCard values - only use static numbers
+6. DO NOT generate /state/ paths with fake data - only generate /root and /elements
+7. Output ONLY raw JSONL - no markdown, no explanations, no code blocks. Each line must be a valid JSON object.
+8. Ensure all JSON is valid - no trailing commas, no missing keys
 
 ### Best Practices:
 - Start with a Heading to title the dashboard
@@ -144,9 +231,15 @@ ${csvContext}
 ${dataAnalysis}
 
 ### Output Format:
-Generate a complete UI spec using the SpecStream format (JSONL with JSON Patch operations).
-Each line should be a valid JSON object with "op", "path", and "value" fields.
-Start with the root element, then add all child elements.
+Generate ONLY raw JSONL (one JSON object per line). NO markdown, NO explanations, NO code blocks.
+
+Example of correct output:
+{"op":"add","path":"/root","value":"dashboard"}
+{"op":"add","path":"/elements/dashboard","value":{"type":"Stack","props":{"direction":"vertical","gap":"md"},"children":["stat1","chart1"]}}
+{"op":"add","path":"/elements/stat1","value":{"type":"StatCard","props":{"label":"Total Sales","value":4500}}}
+{"op":"add","path":"/elements/chart1","value":{"type":"BarChart","props":{"title":"Sales by Month","data":{"$state":"/csvData/data"},"xKey":"Month","yKey":"Revenue","aggregate":"sum"}}}
+
+IMPORTANT: StatCard value must be a NUMBER (e.g. 4500), not an object. Calculate it from the sample data.
 `;
 
   return enhancedInstructions;
@@ -154,7 +247,14 @@ Start with the root element, then add all child elements.
 
 export async function POST(req: Request) {
   try {
-    const { prompt, context } = await req.json();
+    const body = await req.json() as {
+      prompt: string;
+      context?: { csvFiles?: CsvFile[]; selectedFiles?: string[]; provider?: InferenceProvider };
+      provider?: InferenceProvider;
+    };
+    const { prompt, context } = body;
+    // Provider can be at top level or in context (from useUIStream)
+    const provider: InferenceProvider = body.provider || context?.provider || "openai";
 
     // Build context about available CSV files
     const csvFiles = context?.csvFiles || [];
@@ -200,8 +300,13 @@ Requirements:
 5. Apply appropriate aggregations (sum, count, avg) where needed
 6. Make it visually appealing with proper titles and descriptions`;
 
+    // Use custom implementation for Cerebras, Vercel AI SDK for OpenAI
+    if (provider === "cerebras") {
+      return streamCerebras(systemPrompt, userPrompt);
+    }
+
     const result = streamText({
-      model: openai("gpt-4o-mini"),
+      model: openai(process.env.OPENAI_MODEL || "gpt-4o-mini"),
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.7,

@@ -62,6 +62,7 @@ Lekha is a SaaS collaborative document editor that enables teams to:
 | Technology | Purpose |
 |------------|---------|
 | OpenAI API | AI content generation (gpt-4o-mini) |
+| Cerebras API | Alternative AI inference (llama3.1-8b) |
 | Tinyfish | Web search via DuckDuckGo |
 
 ### UI & Styling
@@ -686,6 +687,11 @@ LIVEBLOCKS_SECRET_KEY=sk_dev_...
 
 # OpenAI (for /lekha command)
 OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-4o-mini  # Optional, defaults to gpt-4o-mini
+
+# Cerebras (alternative AI provider)
+CEREBRAS_API_KEY=csk-...
+CEREBRAS_MODEL=llama3.1-8b  # Optional, defaults to llama3.1-8b
 
 # Tinyfish Search (for /search command)
 TINYFISH_API_KEY=sk-tinyfish-...
